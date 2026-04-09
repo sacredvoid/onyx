@@ -21,10 +21,11 @@ export async function checkWebGPU(): Promise<WebGPUStatus> {
       };
     }
 
-    const info = await adapter.requestAdapterInfo();
+    const info = adapter.info ?? (adapter as any).requestAdapterInfo?.();
+    const resolved = info instanceof Promise ? await info : info;
     return {
       supported: true,
-      adapterName: info.device || info.description || "Unknown GPU",
+      adapterName: resolved?.device || resolved?.description || "Unknown GPU",
     };
   } catch (e) {
     return {

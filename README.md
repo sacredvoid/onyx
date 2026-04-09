@@ -1,8 +1,6 @@
 <div align="center">
 
-# onyx
-
-**Run Google's Gemma 4 entirely in your browser.**
+<img src="web/public/onix-banner.svg" alt="Onyx" width="100%"/>
 
 No API keys. No server. No data leaving your machine.
 

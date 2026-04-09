@@ -9,14 +9,17 @@ export function Home() {
       <Header />
 
       <main className="flex-1">
+        {/* Banner */}
+        <section className="max-w-5xl mx-auto px-4 pt-8 pb-4">
+          <img
+            src="/onix-banner.svg"
+            alt="Onyx - Gemma 4 in your browser"
+            className="w-full rounded-2xl border border-neutral-800"
+          />
+        </section>
+
         {/* Hero */}
-        <section className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-          <h1 className="text-5xl font-bold tracking-tight mb-4">
-            onyx
-          </h1>
-          <p className="text-xl text-neutral-400 mb-2">
-            Run Google's Gemma 4 entirely in your browser.
-          </p>
+        <section className="max-w-4xl mx-auto px-4 pt-8 pb-16 text-center">
           <p className="text-sm text-neutral-500 mb-8">
             No API keys. No server. No data leaving your machine. Powered by WebGPU.
           </p>
