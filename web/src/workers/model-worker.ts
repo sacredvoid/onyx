@@ -21,6 +21,42 @@ let model: PreTrainedModel | null = null;
 let currentVariant: ModelVariant | null = null;
 const stoppingCriteria = new InterruptableStoppingCriteria();
 
+// Aggregate progress across all files and throttle updates
+const fileProgress = new Map<string, { loaded: number; total: number }>();
+let lastProgressPost = 0;
+const PROGRESS_THROTTLE_MS = 100;
+
+function resetProgress() {
+  fileProgress.clear();
+  lastProgressPost = 0;
+}
+
+function handleProgress(info: any, variant: ModelVariant) {
+  if (info.status !== "progress") return;
+
+  fileProgress.set(info.file, { loaded: info.loaded, total: info.total });
+
+  const now = performance.now();
+  if (now - lastProgressPost < PROGRESS_THROTTLE_MS) return;
+  lastProgressPost = now;
+
+  let totalLoaded = 0;
+  let totalSize = 0;
+  let currentFile = info.file;
+  for (const [, v] of fileProgress) {
+    totalLoaded += v.loaded;
+    totalSize += v.total;
+  }
+
+  self.postMessage({
+    status: "progress",
+    file: currentFile,
+    loaded: totalLoaded,
+    total: totalSize,
+    variant,
+  });
+}
+
 interface LoadMessage {
   type: "load";
   variant: ModelVariant;
@@ -63,37 +99,18 @@ async function loadModel(variant: ModelVariant) {
   }
 
   self.postMessage({ status: "loading", variant });
+  resetProgress();
 
   const modelId = MODEL_IDS[variant];
 
   processor = await AutoProcessor.from_pretrained(modelId, {
-    progress_callback: (info: any) => {
-      if (info.status === "progress") {
-        self.postMessage({
-          status: "progress",
-          file: info.file,
-          loaded: info.loaded,
-          total: info.total,
-          variant,
-        });
-      }
-    },
+    progress_callback: (info: any) => handleProgress(info, variant),
   });
 
   model = await Gemma4ForConditionalGeneration.from_pretrained(modelId, {
     dtype: "q4f16",
     device: "webgpu",
-    progress_callback: (info: any) => {
-      if (info.status === "progress") {
-        self.postMessage({
-          status: "progress",
-          file: info.file,
-          loaded: info.loaded,
-          total: info.total,
-          variant,
-        });
-      }
-    },
+    progress_callback: (info: any) => handleProgress(info, variant),
   });
 
   currentVariant = variant;

@@ -32,7 +32,7 @@ export function ModelLoader({
           </div>
           <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              className="h-full bg-blue-500 rounded-full transition-[width] duration-500 ease-out"
               style={{ width: `${percent}%` }}
             />
           </div>
