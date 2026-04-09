@@ -1,0 +1,60 @@
+import type { ChatMessage } from "../lib/types";
+import { cn } from "../lib/utils";
+
+interface MessageBubbleProps {
+  message: ChatMessage;
+  isStreaming?: boolean;
+}
+
+export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
+  const isUser = message.role === "user";
+
+  const textContent =
+    typeof message.content === "string"
+      ? message.content
+      : message.content
+          .filter((c) => c.type === "text")
+          .map((c) => c.text)
+          .join("");
+
+  const imageContent =
+    typeof message.content !== "string"
+      ? message.content.filter((c) => c.type === "image")
+      : [];
+
+  const audioContent =
+    typeof message.content !== "string"
+      ? message.content.filter((c) => c.type === "audio")
+      : [];
+
+  return (
+    <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+      <div
+        className={cn(
+          "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          isUser
+            ? "bg-blue-600 text-white"
+            : "bg-neutral-800 text-neutral-100",
+        )}
+      >
+        {imageContent.map((img, i) => (
+          <img
+            key={i}
+            src={img.image}
+            alt="uploaded"
+            className="max-w-full rounded-lg mb-2 max-h-64 object-contain"
+          />
+        ))}
+        {audioContent.map((aud, i) => (
+          <audio key={i} controls src={aud.audio} className="mb-2 w-full" />
+        ))}
+        <p className="whitespace-pre-wrap">
+          {textContent}
+          {isStreaming && (
+            <span className="inline-block w-1.5 h-4 bg-neutral-400 ml-0.5 animate-pulse" />
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
