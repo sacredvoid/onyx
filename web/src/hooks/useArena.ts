@@ -31,6 +31,7 @@ interface UseArenaReturn {
     output: string;
     stats: GenerationStats | null;
   } | null;
+  e2bResult: ArenaRun | null;
   startRace: (
     messages: ChatMessage[],
     images?: string[],
@@ -47,6 +48,7 @@ export function useArena(): UseArenaReturn {
   const [currentRun, setCurrentRun] = useState<UseArenaReturn["currentRun"]>(null);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [e2bResult, setE2bResult] = useState<ArenaRun | null>(null);
 
   // Track whether we need to load E4B after unload completes
   const pendingE4BLoadRef = useRef(false);
@@ -68,6 +70,7 @@ export function useArena(): UseArenaReturn {
     pendingE4BLoadRef.current = false;
     pendingE2BLoadRef.current = false;
     raceStateRef.current = null;
+    setE2bResult(null);
     if (errorMsg) setError(errorMsg);
   }, []);
 
@@ -132,6 +135,7 @@ export function useArena(): UseArenaReturn {
               state.currentOutput = "";
               setPhase("switching");
               setCurrentRun(null);
+              setE2bResult(run);
               pendingE4BLoadRef.current = true;
               worker.postMessage({ type: "unload" });
             } else {
@@ -208,5 +212,5 @@ export function useArena(): UseArenaReturn {
     [getOrCreateWorker],
   );
 
-  return { phase, comparisons, currentRun, startRace, progress, error };
+  return { phase, comparisons, currentRun, e2bResult, startRace, progress, error };
 }
