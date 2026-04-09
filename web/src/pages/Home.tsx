@@ -17,7 +17,7 @@ export function Home() {
               <div className="relative shrink-0">
                 <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-3xl scale-110" />
                 <img
-                  src="/onix.webp"
+                  src={`${import.meta.env.BASE_URL}onix.webp`}
                   alt="Shiny Onix"
                   className="relative w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(129,140,248,0.3)]"
                 />
@@ -111,7 +111,7 @@ export function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-neutral-400">
               <div>
                 <h3 className="text-white font-medium mb-1">Models</h3>
-                <p>Gemma 4 E2B (~500 MB) and E4B (~1.5 GB), quantized to 4-bit (q4f16) in ONNX format. Downloaded once, cached in your browser.</p>
+                <p>Gemma 4 E2B (~3.2 GB) and E4B (~5 GB), quantized to 4-bit (q4f16) in ONNX format with vision + audio encoders. Downloaded once, cached in your browser.</p>
               </div>
               <div>
                 <h3 className="text-white font-medium mb-1">Runtime</h3>

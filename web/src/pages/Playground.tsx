@@ -166,7 +166,7 @@ export function Playground() {
             {/* Welcome */}
             <div className="text-center space-y-2">
               <img
-                src="/onix.webp"
+                src={`${import.meta.env.BASE_URL}onix.webp`}
                 alt="Onix"
                 className="w-16 h-16 mx-auto object-contain opacity-60"
               />

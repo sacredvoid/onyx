@@ -45,7 +45,7 @@ export function ModelLoader({
         <div className="text-center space-y-4">
           <p className="text-neutral-400">
             Load the Gemma 4 {variant} model to start chatting.
-            {variant === "E2B" ? " (~500 MB)" : " (~1.5 GB)"}
+            {variant === "E2B" ? " (~3.2 GB total)" : " (~5 GB total)"}
           </p>
           <button
             onClick={() => onLoad(variant)}

@@ -33,7 +33,7 @@ Onyx is a demo website and Python toolkit for running Google's [Gemma 4](https:/
 
 ### How it works
 
-The demo site uses [Transformers.js](https://huggingface.co/docs/transformers.js) with WebGPU acceleration to run Gemma 4 E2B (2.3B params, ~500 MB) and E4B (~1.5 GB) in a Web Worker. Models are quantized to 4-bit (q4f16) ONNX format and cached locally after first download.
+The demo site uses [Transformers.js](https://huggingface.co/docs/transformers.js) with WebGPU acceleration to run Gemma 4 E2B (2.3B params, ~3.2 GB total with all encoders) and E4B (~5 GB) in a Web Worker. Models are quantized to 4-bit (q4f16) ONNX format and cached locally after first download.
 
 ## Demo Site
 
@@ -107,8 +107,8 @@ python benchmark.py --model google/gemma-4-E2B-it --quant-levels fp16 q8 q4
 
 | Model | Params | Size (q4f16) | Speed (M3 Pro) |
 |-------|--------|-------------|----------------|
-| E2B | 2.3B effective | ~500 MB | ~20-25 tok/s |
-| E4B | 4B effective | ~1.5 GB | ~10-15 tok/s |
+| E2B | 2.3B effective | ~3.2 GB | ~5-20 tok/s |
+| E4B | 4B effective | ~5 GB | ~3-15 tok/s |
 
 Models from [onnx-community/gemma-4-E2B-it-ONNX](https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX) and [onnx-community/gemma-4-E4B-it-ONNX](https://huggingface.co/onnx-community/gemma-4-E4B-it-ONNX).
 

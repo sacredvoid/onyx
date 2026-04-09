@@ -108,6 +108,11 @@ export function Arena() {
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="max-w-2xl w-full space-y-8">
               <div className="text-center space-y-2">
+                <img
+                  src={`${import.meta.env.BASE_URL}onix.webp`}
+                  alt="Onix"
+                  className="w-14 h-14 mx-auto object-contain opacity-60"
+                />
                 <h1 className="text-3xl font-bold">E2B vs E4B</h1>
                 <p className="text-neutral-400">
                   Same prompt, two models. See how they compare on speed and quality.
@@ -172,8 +177,8 @@ export function Arena() {
 
               {/* How it works */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t border-neutral-800/50">
-                <StepCard step="1" title="Load E2B" desc="~500 MB model loads and runs your prompt" />
-                <StepCard step="2" title="Switch to E4B" desc="Unloads E2B, loads the larger ~1.5 GB model" />
+                <StepCard step="1" title="Load E2B" desc="~3.2 GB model loads and runs your prompt" />
+                <StepCard step="2" title="Switch to E4B" desc="Unloads E2B, loads the larger ~5 GB model" />
                 <StepCard step="3" title="Compare" desc="Side-by-side results with speed and quality stats" />
               </div>
             </div>
