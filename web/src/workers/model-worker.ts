@@ -22,14 +22,18 @@ let currentVariant: ModelVariant | null = null;
 let isBusy = false;
 const stoppingCriteria = new InterruptableStoppingCriteria();
 
-// Aggregate progress across all files and throttle updates
+// Aggregate progress across all files, throttle updates, and ensure monotonic increase
 const fileProgress = new Map<string, { loaded: number; total: number }>();
 let lastProgressPost = 0;
-const PROGRESS_THROTTLE_MS = 100;
+let lastPostedLoaded = 0;
+let lastPostedTotal = 0;
+const PROGRESS_THROTTLE_MS = 150;
 
 function resetProgress() {
   fileProgress.clear();
   lastProgressPost = 0;
+  lastPostedLoaded = 0;
+  lastPostedTotal = 0;
 }
 
 function handleProgress(info: any, variant: ModelVariant) {
@@ -43,15 +47,24 @@ function handleProgress(info: any, variant: ModelVariant) {
 
   let totalLoaded = 0;
   let totalSize = 0;
-  const currentFile = info.file;
   for (const [, v] of fileProgress) {
     totalLoaded += v.loaded;
     totalSize += v.total;
   }
 
+  // Keep total monotonically increasing so the bar never shrinks
+  if (totalSize < lastPostedTotal) totalSize = lastPostedTotal;
+  // Keep loaded monotonically increasing
+  if (totalLoaded < lastPostedLoaded) totalLoaded = lastPostedLoaded;
+  // Don't let loaded exceed total
+  if (totalLoaded > totalSize) totalLoaded = totalSize;
+
+  lastPostedLoaded = totalLoaded;
+  lastPostedTotal = totalSize;
+
   self.postMessage({
     status: "progress",
-    file: currentFile,
+    file: info.file,
     loaded: totalLoaded,
     total: totalSize,
     variant,
@@ -142,28 +155,13 @@ async function generate(data: GenerateMessage) {
       ? await Promise.all(data.audios.map((src) => read_audio(src)))
       : null;
 
-    // Build processor args - only pass image/audio if they actually exist
-    const hasImage = images && images.length > 0;
-    const hasAudio = audios && audios.length > 0;
+    // Processor signature is (text, image, audio, options) - always pass all 4 args
+    const imageArg = images && images.length > 0 ? images[0] : null;
+    const audioArg = audios && audios.length > 0 ? audios[0] : null;
 
-    let inputs: any;
-    if (hasImage && hasAudio) {
-      inputs = await (processor as any)(prompt, images[0], audios[0], {
-        add_special_tokens: false,
-      });
-    } else if (hasImage) {
-      inputs = await (processor as any)(prompt, images[0], {
-        add_special_tokens: false,
-      });
-    } else if (hasAudio) {
-      inputs = await (processor as any)(prompt, null, audios[0], {
-        add_special_tokens: false,
-      });
-    } else {
-      inputs = await (processor as any)(prompt, {
-        add_special_tokens: false,
-      });
-    }
+    const inputs = await (processor as any)(prompt, imageArg, audioArg, {
+      add_special_tokens: false,
+    });
 
     startTime = performance.now();
 
