@@ -6,6 +6,13 @@ import { Chat } from "../components/Chat";
 import { InputBar } from "../components/InputBar";
 import type { ChatMessage, ModelVariant, MultimodalContent } from "../lib/types";
 
+const SUGGESTIONS = [
+  "Explain how WebGPU works",
+  "Write a Python fibonacci generator",
+  "What makes Gemma 4 different from GPT?",
+  "Tell me a creative short story",
+];
+
 export function Playground() {
   const {
     status,
@@ -25,14 +32,12 @@ export function Playground() {
   const wasGeneratingRef = useRef(false);
   const blobUrlsRef = useRef<string[]>([]);
 
-  // Revoke blob URLs on unmount
   useEffect(() => {
     return () => {
       blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
-  // When generation completes, add assistant message to history
   useEffect(() => {
     if (wasGeneratingRef.current && status !== "generating") {
       const text = output || "(no response)";
@@ -62,7 +67,6 @@ export function Playground() {
         content: content.length === 1 ? text : content,
       };
 
-      // Use functional updater to avoid stale closure over messages
       setMessages((prev) => {
         const newMessages = [...prev, userMessage];
 
@@ -86,12 +90,13 @@ export function Playground() {
   );
 
   const isGenerating = status === "generating";
+  const hasMessages = messages.length > 0 || isGenerating;
 
-  return (
-    <div className="h-screen flex flex-col">
-      <Header modelStatus={status} currentVariant={currentVariant} />
-
-      {status !== "ready" && status !== "generating" ? (
+  // Loading state - model selector + loader
+  if (status !== "ready" && status !== "generating") {
+    return (
+      <div className="h-screen flex flex-col">
+        <Header modelStatus={status} currentVariant={currentVariant} />
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="flex gap-2 mb-6">
             {(["E2B", "E4B"] as ModelVariant[]).map((v) => (
@@ -108,7 +113,6 @@ export function Playground() {
               </button>
             ))}
           </div>
-
           <ModelLoader
             variant={selectedVariant}
             progress={progress}
@@ -116,12 +120,20 @@ export function Playground() {
             isLoading={status === "loading"}
             isReady={false}
           />
-
           {error && (
             <p className="mt-4 text-red-400 text-sm max-w-md text-center">{error}</p>
           )}
         </div>
-      ) : (
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col">
+      <Header modelStatus={status} currentVariant={currentVariant} />
+
+      {hasMessages ? (
+        // Chat mode - messages + bottom input
         <>
           <Chat
             messages={messages}
@@ -134,17 +146,69 @@ export function Playground() {
               {inputError}
             </div>
           )}
-          <InputBar
-            onSend={handleSend}
-            onInterrupt={interrupt}
-            isGenerating={isGenerating}
-            disabled={status !== "ready" && status !== "generating"}
-            onError={(msg) => {
-              setInputError(msg);
-              setTimeout(() => setInputError(null), 5000);
-            }}
-          />
+          <div className="max-w-3xl mx-auto w-full">
+            <InputBar
+              onSend={handleSend}
+              onInterrupt={interrupt}
+              isGenerating={isGenerating}
+              disabled={status !== "ready" && status !== "generating"}
+              onError={(msg) => {
+                setInputError(msg);
+                setTimeout(() => setInputError(null), 5000);
+              }}
+            />
+          </div>
         </>
+      ) : (
+        // Empty state - centered welcome
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full space-y-8">
+            {/* Welcome */}
+            <div className="text-center space-y-2">
+              <img
+                src="/onix.webp"
+                alt="Onix"
+                className="w-16 h-16 mx-auto object-contain opacity-60"
+              />
+              <h2 className="text-2xl font-semibold">What can I help with?</h2>
+              <p className="text-sm text-neutral-500">
+                Running Gemma 4 {currentVariant} locally via WebGPU. Text, images, and audio supported.
+              </p>
+            </div>
+
+            {/* Centered input */}
+            <div className="max-w-xl mx-auto">
+              <InputBar
+                onSend={handleSend}
+                onInterrupt={interrupt}
+                isGenerating={isGenerating}
+                disabled={status !== "ready" && status !== "generating"}
+                placeholder="Ask anything..."
+                onError={(msg) => {
+                  setInputError(msg);
+                  setTimeout(() => setInputError(null), 5000);
+                }}
+              />
+            </div>
+
+            {inputError && (
+              <p className="text-xs text-red-400 text-center">{inputError}</p>
+            )}
+
+            {/* Suggestion chips */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleSend(s)}
+                  className="px-3 py-1.5 text-xs bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

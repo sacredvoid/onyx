@@ -92,7 +92,7 @@ export function InputBar({
   };
 
   return (
-    <div className="border-t border-neutral-800 bg-neutral-950 p-4">
+    <div className="bg-neutral-950 p-4">
       {(imagePreview || audioBlob) && (
         <div className="flex gap-2 mb-3">
           {imagePreview && (
@@ -141,7 +141,7 @@ export function InputBar({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+          className="flex-1 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 disabled:opacity-50"
         />
 
         {isGenerating ? (
