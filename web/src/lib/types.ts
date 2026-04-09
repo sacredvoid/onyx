@@ -27,6 +27,23 @@ export type MultimodalContent =
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string | MultimodalContent[];
+  /** Present when this message represents a tool call (display only) */
+  toolCall?: ToolCall;
+  /** Present when this message includes a tool result (display only) */
+  toolResult?: ToolResult;
+  /** True if this is a tool-related display message */
+  isToolMessage?: boolean;
+}
+
+export interface ToolCall {
+  name: string;
+  arguments: Record<string, string>;
+}
+
+export interface ToolResult {
+  name: string;
+  result: string;
+  success: boolean;
 }
 
 export function getTextContent(content: string | MultimodalContent[]): string {
