@@ -75,12 +75,7 @@ export function useModel(): UseModelReturn {
         case "complete":
           if (!interruptedRef.current) {
             setStatus("ready");
-            setStats({
-              numTokens: data.numTokens,
-              tps: data.tps,
-              totalTime: data.totalTime,
-              ttft: data.ttft,
-            });
+            // Keep the last streaming stats - no need to replace them
           }
           interruptedRef.current = false;
           break;
