@@ -1,6 +1,10 @@
 <div align="center">
 
-<img src="web/public/onix-banner.svg" alt="Onyx" width="100%"/>
+<img src="2095-Shiny-Onix.webp" alt="Onyx" width="280"/>
+
+# onyx
+
+**Run Google's Gemma 4 entirely in your browser.**
 
 No API keys. No server. No data leaving your machine.
 
