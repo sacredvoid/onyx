@@ -9,6 +9,7 @@ interface ArenaResultProps {
   isStreaming?: boolean;
   isWaiting?: boolean;
   winner?: boolean;
+  prefetchStatus?: "prefetching" | "prefetched" | null;
 }
 
 export function ArenaResult({
@@ -18,6 +19,7 @@ export function ArenaResult({
   isStreaming,
   isWaiting,
   winner,
+  prefetchStatus,
 }: ArenaResultProps) {
   return (
     <div
@@ -78,6 +80,12 @@ export function ArenaResult({
                 {variant === "E4B" ? "4B" : "2B"}
               </div>
               <p className="text-xs text-neutral-600">Waiting for E2B to finish...</p>
+              {prefetchStatus === "prefetching" && (
+                <p className="text-[10px] text-indigo-400/60 animate-pulse">Pre-downloading model files...</p>
+              )}
+              {prefetchStatus === "prefetched" && (
+                <p className="text-[10px] text-green-400/60">Model files cached, ready to load</p>
+              )}
             </div>
           </div>
         ) : isStreaming && !output ? (

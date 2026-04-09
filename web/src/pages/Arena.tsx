@@ -14,7 +14,7 @@ const SAMPLE_PROMPTS = [
 ];
 
 export function Arena() {
-  const { phase, comparisons, currentRun, e2bResult, startRace, progress, error } = useArena();
+  const { phase, comparisons, currentRun, e2bResult, e4bPrefetched, startRace, progress, error } = useArena();
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -252,6 +252,11 @@ export function Arena() {
                 isStreaming={showE4B?.streaming}
                 isWaiting={showE4B?.waiting}
                 winner={e4bWins}
+                prefetchStatus={
+                  showE4B?.waiting
+                    ? e4bPrefetched ? "prefetched" : "prefetching"
+                    : null
+                }
               />
             </div>
 

@@ -86,7 +86,63 @@ type WorkerMessage =
   | { type: "load"; variant: ModelVariant }
   | GenerateMessage
   | { type: "interrupt" }
-  | { type: "unload" };
+  | { type: "unload" }
+  | { type: "prefetch"; variant: ModelVariant };
+
+let prefetchAbort: AbortController | null = null;
+let prefetchedVariant: ModelVariant | null = null;
+
+async function prefetchModel(variant: ModelVariant) {
+  // Skip if already prefetched or currently loaded
+  if (prefetchedVariant === variant || currentVariant === variant) return;
+
+  prefetchAbort = new AbortController();
+
+  try {
+    const modelId = MODEL_IDS[variant];
+
+    // Download processor files to cache (lightweight, mostly config/tokenizer)
+    await AutoProcessor.from_pretrained(modelId);
+
+    // Download model weights to cache without GPU compilation
+    // Using dtype "q4f16" ensures we cache the same quantized files
+    // that loadModel will need. device: null avoids GPU allocation.
+    if (!prefetchAbort.signal.aborted) {
+      await Gemma4ForConditionalGeneration.from_pretrained(modelId, {
+        dtype: "q4f16",
+        device: null,
+        progress_callback: (info: any) => {
+          if (prefetchAbort?.signal.aborted) return;
+          if (info.status === "progress") {
+            self.postMessage({
+              status: "prefetch-progress",
+              file: info.file,
+              loaded: info.loaded,
+              total: info.total,
+              variant,
+            });
+          }
+        },
+      });
+    }
+
+    if (!prefetchAbort.signal.aborted) {
+      prefetchedVariant = variant;
+      self.postMessage({ status: "prefetch-done", variant });
+    }
+  } catch {
+    // Prefetch is best-effort - failures are fine
+  } finally {
+    prefetchAbort = null;
+  }
+}
+
+function cancelPrefetch() {
+  if (prefetchAbort) {
+    prefetchAbort.abort();
+    prefetchAbort = null;
+  }
+}
 
 async function loadModel(variant: ModelVariant) {
   if (currentVariant === variant && model && processor) {
@@ -225,16 +281,24 @@ self.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
     return;
   }
 
+  // Prefetch runs outside the queue (it's background, non-blocking)
+  if (type === "prefetch") {
+    prefetchModel(event.data.variant);
+    return;
+  }
+
   // Queue all other operations so they execute sequentially
   taskQueue = taskQueue.then(async () => {
     switch (type) {
       case "load":
+        cancelPrefetch();
         await loadModel(event.data.variant);
         break;
       case "generate":
         await generate(event.data as any);
         break;
       case "unload":
+        cancelPrefetch();
         if (model) {
           try {
             await (model as any).dispose?.();

@@ -32,6 +32,7 @@ interface UseArenaReturn {
     stats: GenerationStats | null;
   } | null;
   e2bResult: ArenaRun | null;
+  e4bPrefetched: boolean;
   startRace: (
     messages: ChatMessage[],
     images?: string[],
@@ -49,6 +50,7 @@ export function useArena(): UseArenaReturn {
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [e2bResult, setE2bResult] = useState<ArenaRun | null>(null);
+  const [e4bPrefetched, setE4bPrefetched] = useState(false);
 
   // Track whether we need to load E4B after unload completes
   const pendingE4BLoadRef = useRef(false);
@@ -71,6 +73,7 @@ export function useArena(): UseArenaReturn {
     pendingE2BLoadRef.current = false;
     raceStateRef.current = null;
     setE2bResult(null);
+    setE4bPrefetched(false);
     if (errorMsg) setError(errorMsg);
   }, []);
 
@@ -99,6 +102,10 @@ export function useArena(): UseArenaReturn {
               images: state.images,
               audios: state.audios,
             });
+            // Start prefetching E4B files while E2B generates
+            if (!state.e2bRun) {
+              worker.postMessage({ type: "prefetch", variant: "E4B" });
+            }
             break;
 
           case "update":
@@ -174,6 +181,14 @@ export function useArena(): UseArenaReturn {
             resetRace();
             break;
 
+          case "prefetch-done":
+            setE4bPrefetched(true);
+            break;
+
+          case "prefetch-progress":
+            // Silently track prefetch - don't show in main progress bar
+            break;
+
           case "error":
             resetRace(data.error);
             break;
@@ -223,5 +238,5 @@ export function useArena(): UseArenaReturn {
     [getOrCreateWorker],
   );
 
-  return { phase, comparisons, currentRun, e2bResult, startRace, progress, error };
+  return { phase, comparisons, currentRun, e2bResult, e4bPrefetched, startRace, progress, error };
 }

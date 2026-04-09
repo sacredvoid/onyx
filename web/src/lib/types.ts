@@ -46,4 +46,6 @@ export type WorkerResponse =
   | { status: "complete"; numTokens: number; tps: number; totalTime: number; ttft: number | null }
   | { status: "interrupted" }
   | { status: "unloaded" }
-  | { status: "error"; error: string };
+  | { status: "error"; error: string }
+  | { status: "prefetch-progress"; file: string; loaded: number; total: number; variant: ModelVariant }
+  | { status: "prefetch-done"; variant: ModelVariant };
