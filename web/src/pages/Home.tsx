@@ -9,24 +9,53 @@ export function Home() {
       <Header />
 
       <main className="flex-1">
-        {/* Banner */}
-        <section className="max-w-5xl mx-auto px-4 pt-8 pb-4">
-          <img
-            src="/onix-banner.svg"
-            alt="Onyx - Gemma 4 in your browser"
-            className="w-full rounded-2xl border border-neutral-800"
-          />
+        {/* Hero with Onix */}
+        <section className="max-w-5xl mx-auto px-4 pt-12 pb-16">
+          <div className="relative rounded-2xl border border-neutral-800 bg-gradient-to-br from-neutral-950 to-neutral-900 overflow-hidden">
+            <div className="flex items-center gap-8 px-10 py-10">
+              {/* Onix image */}
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-3xl scale-110" />
+                <img
+                  src="/onix.webp"
+                  alt="Shiny Onix"
+                  className="relative w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(129,140,248,0.3)]"
+                />
+              </div>
+
+              {/* Text content */}
+              <div className="space-y-4">
+                <h1 className="text-5xl font-bold tracking-tight">onyx</h1>
+                <p className="text-lg text-neutral-400">
+                  Gemma 4 in your browser
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {["WebGPU", "Multimodal", "On-device", "Arena", "E2B", "E4B", "ONNX q4"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2.5 py-1 text-xs font-mono rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom accent */}
+            <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-60" />
+          </div>
         </section>
 
-        {/* Hero */}
-        <section className="max-w-4xl mx-auto px-4 pt-8 pb-16 text-center">
-          <p className="text-sm text-neutral-500 mb-8">
-            No API keys. No server. No data leaving your machine. Powered by WebGPU.
+        {/* CTA */}
+        <section className="max-w-4xl mx-auto px-4 pb-12 text-center space-y-6">
+          <p className="text-sm text-neutral-500">
+            No API keys. No server. No data leaving your machine.
           </p>
 
           <WebGPUBadge />
 
-          <div className="flex gap-3 justify-center mt-8">
+          <div className="flex gap-3 justify-center">
             <Link
               to="/playground"
               className="px-6 py-3 bg-white text-black rounded-xl font-medium hover:bg-neutral-200 transition-colors"
