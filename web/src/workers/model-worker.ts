@@ -123,56 +123,72 @@ async function generate(data: GenerateMessage) {
     return;
   }
 
-  stoppingCriteria.reset();
-
-  const prompt = (processor as any).apply_chat_template(data.messages, {
-    enable_thinking: data.enableThinking ?? false,
-    add_generation_prompt: true,
-  });
-
-  // Process multimodal inputs
-  const images = data.images
-    ? await Promise.all(data.images.map((src) => load_image(src)))
-    : null;
-  const audios = data.audios
-    ? await Promise.all(data.audios.map((src) => read_audio(src)))
-    : null;
-
-  const processorArgs: any[] = [prompt];
-  if (images && images.length > 0) processorArgs.push(images[0]);
-  else processorArgs.push(null);
-  if (audios && audios.length > 0) processorArgs.push(audios[0]);
-
-  const inputs = await (processor as any)(...processorArgs, {
-    add_special_tokens: false,
-  });
-
   let numTokens = 0;
-  const startTime = performance.now();
+  let startTime = performance.now();
   let firstTokenTime: number | null = null;
 
-  const streamer = new TextStreamer((processor as any).tokenizer, {
-    skip_prompt: true,
-    skip_special_tokens: true,
-    callback_function: (token: string) => {
-      numTokens++;
-      if (firstTokenTime === null) firstTokenTime = performance.now();
-
-      const elapsed = performance.now() - startTime;
-      const tps = numTokens / (elapsed / 1000);
-
-      self.postMessage({
-        status: "update",
-        token,
-        numTokens,
-        tps,
-        elapsed,
-        ttft: firstTokenTime ? firstTokenTime - startTime : null,
-      });
-    },
-  });
-
   try {
+    stoppingCriteria.reset();
+
+    const prompt = (processor as any).apply_chat_template(data.messages, {
+      enable_thinking: data.enableThinking ?? false,
+      add_generation_prompt: true,
+    });
+
+    // Process multimodal inputs
+    const images = data.images
+      ? await Promise.all(data.images.map((src) => load_image(src)))
+      : null;
+    const audios = data.audios
+      ? await Promise.all(data.audios.map((src) => read_audio(src)))
+      : null;
+
+    // Build processor args - only pass image/audio if they actually exist
+    const hasImage = images && images.length > 0;
+    const hasAudio = audios && audios.length > 0;
+
+    let inputs: any;
+    if (hasImage && hasAudio) {
+      inputs = await (processor as any)(prompt, images[0], audios[0], {
+        add_special_tokens: false,
+      });
+    } else if (hasImage) {
+      inputs = await (processor as any)(prompt, images[0], {
+        add_special_tokens: false,
+      });
+    } else if (hasAudio) {
+      inputs = await (processor as any)(prompt, null, audios[0], {
+        add_special_tokens: false,
+      });
+    } else {
+      inputs = await (processor as any)(prompt, {
+        add_special_tokens: false,
+      });
+    }
+
+    startTime = performance.now();
+
+    const streamer = new TextStreamer((processor as any).tokenizer, {
+      skip_prompt: true,
+      skip_special_tokens: true,
+      callback_function: (token: string) => {
+        numTokens++;
+        if (firstTokenTime === null) firstTokenTime = performance.now();
+
+        const elapsed = performance.now() - startTime;
+        const tps = numTokens / (elapsed / 1000);
+
+        self.postMessage({
+          status: "update",
+          token,
+          numTokens,
+          tps,
+          elapsed,
+          ttft: firstTokenTime ? firstTokenTime - startTime : null,
+        });
+      },
+    });
+
     await model.generate({
       ...inputs,
       max_new_tokens: data.maxNewTokens ?? 1024,
