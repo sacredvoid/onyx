@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
+import { ToolCallBubble } from "./ToolCallBubble";
 import type { ChatMessage, GenerationStats } from "../lib/types";
 import { formatTokensPerSecond, formatDuration } from "../lib/utils";
 
@@ -20,9 +21,17 @@ export function Chat({ messages, streamingOutput, isGenerating, stats }: ChatPro
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-        {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} />
-        ))}
+        {messages.map((msg, i) =>
+          msg.isToolMessage && msg.toolCall ? (
+            <ToolCallBubble
+              key={i}
+              toolCall={msg.toolCall}
+              toolResult={msg.toolResult}
+            />
+          ) : (
+            <MessageBubble key={i} message={msg} />
+          ),
+        )}
 
         {isGenerating && streamingOutput && (
           <MessageBubble

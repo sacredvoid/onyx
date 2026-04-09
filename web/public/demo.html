@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browser Tools Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; padding: 2rem; max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    p.subtitle { color: #64748b; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 1rem; margin-bottom: 0.75rem; color: #334155; }
+    label { display: block; font-size: 0.85rem; color: #475569; margin-bottom: 0.25rem; }
+    input[type="text"], input[type="email"], textarea, select {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem;
+      font-size: 0.85rem; margin-bottom: 0.75rem; background: #f8fafc;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    button {
+      padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; font-size: 0.85rem;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    #output { padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; margin-top: 1rem; display: none; }
+    #output.visible { display: block; }
+    .todo-list { list-style: none; }
+    .todo-list li { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+    .todo-list li.done span { text-decoration: line-through; color: #94a3b8; }
+    .counter { font-size: 2rem; font-weight: bold; color: #3b82f6; text-align: center; padding: 1rem; }
+    .counter-actions { display: flex; justify-content: center; gap: 0.5rem; }
+    nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    nav a { color: #3b82f6; text-decoration: none; font-size: 0.85rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
+    nav a:hover { background: #eff6ff; }
+  </style>
+</head>
+<body>
+  <h1>Interactive Demo Page</h1>
+  <p class="subtitle">This page runs on the same origin so all browser tools work. Try asking the AI to interact with it!</p>
+
+  <nav>
+    <a href="#form">Form</a>
+    <a href="#todos">Todos</a>
+    <a href="#counter">Counter</a>
+  </nav>
+
+  <!-- Contact Form -->
+  <div class="card" id="form">
+    <h2>Contact Form</h2>
+    <label for="name">Name</label>
+    <input type="text" id="name" placeholder="Enter your name" />
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com" />
+    <label for="message">Message</label>
+    <textarea id="message" placeholder="Write a message..."></textarea>
+    <label for="priority">Priority</label>
+    <select id="priority">
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+    <div class="actions">
+      <button class="btn-primary" id="submit-btn" type="button">Submit</button>
+      <button class="btn-secondary" id="clear-btn" type="button">Clear</button>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <!-- Todo List -->
+  <div class="card" id="todos">
+    <h2>Todo List</h2>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+      <input type="text" id="todo-input" placeholder="Add a new task..." style="margin-bottom:0;" />
+      <button class="btn-primary" id="add-todo" type="button">Add</button>
+    </div>
+    <ul class="todo-list" id="todo-list">
+      <li><input type="checkbox" /><span>Buy groceries</span></li>
+      <li><input type="checkbox" /><span>Read a book</span></li>
+      <li><input type="checkbox" /><span>Go for a walk</span></li>
+    </ul>
+  </div>
+
+  <!-- Counter -->
+  <div class="card" id="counter">
+    <h2>Counter</h2>
+    <div class="counter" id="counter-value">0</div>
+    <div class="counter-actions">
+      <button class="btn-secondary" id="decrement" type="button">-</button>
+      <button class="btn-danger" id="reset" type="button">Reset</button>
+      <button class="btn-primary" id="increment" type="button">+</button>
+    </div>
+  </div>
+
+  <script>
+    // Form handling
+    document.getElementById('submit-btn').addEventListener('click', function() {
+      var name = document.getElementById('name').value;
+      var email = document.getElementById('email').value;
+      var message = document.getElementById('message').value;
+      var priority = document.getElementById('priority').value;
+      var output = document.getElementById('output');
+      if (!name && !email && !message) {
+        output.textContent = 'Please fill in at least one field.';
+        output.className = 'visible';
+        output.style.background = '#fef2f2';
+        output.style.borderColor = '#fecaca';
+        return;
+      }
+      output.textContent = 'Form submitted! Name: ' + (name || '(empty)') +
+        ', Email: ' + (email || '(empty)') +
+        ', Message: ' + (message || '(empty)') +
+        ', Priority: ' + priority;
+      output.className = 'visible';
+      output.style.background = '#f0fdf4';
+      output.style.borderColor = '#bbf7d0';
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', function() {
+      document.getElementById('name').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('message').value = '';
+      document.getElementById('priority').selectedIndex = 0;
+      document.getElementById('output').className = '';
+    });
+
+    // Todo handling
+    document.getElementById('add-todo').addEventListener('click', function() {
+      var input = document.getElementById('todo-input');
+      var text = input.value.trim();
+      if (!text) return;
+      var li = document.createElement('li');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.addEventListener('change', function() {
+        li.className = this.checked ? 'done' : '';
+      });
+      var span = document.createElement('span');
+      span.textContent = text;
+      li.appendChild(cb);
+      li.appendChild(span);
+      document.getElementById('todo-list').appendChild(li);
+      input.value = '';
+    });
+
+    document.querySelectorAll('.todo-list input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        this.parentElement.className = this.checked ? 'done' : '';
+      });
+    });
+
+    // Counter handling
+    var count = 0;
+    var display = document.getElementById('counter-value');
+    document.getElementById('increment').addEventListener('click', function() {
+      count++;
+      display.textContent = count;
+    });
+    document.getElementById('decrement').addEventListener('click', function() {
+      count--;
+      display.textContent = count;
+    });
+    document.getElementById('reset').addEventListener('click', function() {
+      count = 0;
+      display.textContent = count;
+    });
+  </script>
+</body>
+</html>

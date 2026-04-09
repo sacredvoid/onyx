@@ -23,6 +23,8 @@ interface UseModelReturn {
   unload: () => void;
   error: string | null;
   currentVariant: ModelVariant | null;
+  /** Set this ref to receive a callback when generation completes normally. */
+  onCompleteRef: React.MutableRefObject<((text: string) => void) | null>;
 }
 
 export function useModel(): UseModelReturn {
@@ -34,6 +36,8 @@ export function useModel(): UseModelReturn {
   const [error, setError] = useState<string | null>(null);
   const [currentVariant, setCurrentVariant] = useState<ModelVariant | null>(null);
   const interruptedRef = useRef(false);
+  const outputRef = useRef("");
+  const onCompleteRef = useRef<((text: string) => void) | null>(null);
 
   useEffect(() => {
     const worker = new Worker(
@@ -64,6 +68,7 @@ export function useModel(): UseModelReturn {
         case "update":
           // Ignore tokens that arrive after interrupt was requested
           if (interruptedRef.current) break;
+          outputRef.current += data.token;
           setOutput((prev) => prev + data.token);
           setStats({
             numTokens: data.numTokens,
@@ -76,6 +81,7 @@ export function useModel(): UseModelReturn {
           if (!interruptedRef.current) {
             setStatus("ready");
             // Keep the last streaming stats - no need to replace them
+            onCompleteRef.current?.(outputRef.current || "(no response)");
           }
           interruptedRef.current = false;
           break;
@@ -121,6 +127,7 @@ export function useModel(): UseModelReturn {
         return;
       }
       setOutput("");
+      outputRef.current = "";
       setStats(null);
       setStatus("generating");
       workerRef.current.postMessage({
@@ -154,5 +161,6 @@ export function useModel(): UseModelReturn {
     unload,
     error,
     currentVariant,
+    onCompleteRef,
   };
 }
