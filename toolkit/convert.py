@@ -7,12 +7,10 @@ Usage:
 """
 
 import argparse
-import os
+import subprocess
 import sys
 import time
 from pathlib import Path
-
-from tqdm import tqdm
 
 
 def parse_args():
@@ -60,14 +58,14 @@ def convert_model(model_id: str, output_dir: str, quant: str, task: str):
     print("[1/2] Exporting model to ONNX format...")
     start = time.time()
 
-    export_cmd = (
-        f"optimum-cli export onnx "
-        f"--model {model_id} "
-        f"--task {task} "
-        f"{output_path / 'onnx'}"
-    )
-    print(f"  Running: {export_cmd}")
-    ret = os.system(export_cmd)
+    export_args = [
+        "optimum-cli", "export", "onnx",
+        "--model", model_id,
+        "--task", task,
+        str(output_path / "onnx"),
+    ]
+    print(f"  Running: {' '.join(export_args)}")
+    ret = subprocess.run(export_args).returncode
     if ret != 0:
         print(f"ERROR: ONNX export failed with code {ret}")
         sys.exit(1)
@@ -81,17 +79,18 @@ def convert_model(model_id: str, output_dir: str, quant: str, task: str):
         print(f"[2/2] Quantizing to {quant}...")
         start = time.time()
 
-        quant_cmd = (
-            f"optimum-cli onnx quantize "
-            f"--onnx_model {output_path / 'onnx'} "
-            f"--avr "
-            f"-o {output_path / f'onnx_{quant}'}"
-        )
-        print(f"  Running: {quant_cmd}")
-        ret = os.system(quant_cmd)
+        quant_args = [
+            "optimum-cli", "onnx", "quantize",
+            "--onnx_model", str(output_path / "onnx"),
+            "--avr",
+            "-o", str(output_path / f"onnx_{quant}"),
+        ]
+        print(f"  Running: {' '.join(quant_args)}")
+        ret = subprocess.run(quant_args).returncode
         if ret != 0:
-            print(f"WARNING: Quantization failed with code {ret}")
-            print("  The unquantized ONNX model is still available.")
+            print(f"ERROR: Quantization to {quant} failed with code {ret}")
+            print(f"  The unquantized ONNX model is available at: {output_path / 'onnx'}")
+            sys.exit(1)
         else:
             quant_time = time.time() - start
             print(f"  Quantization completed in {quant_time:.1f}s")

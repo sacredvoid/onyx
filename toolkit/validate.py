@@ -9,8 +9,6 @@ Usage:
 import argparse
 import time
 
-import numpy as np
-
 
 TEST_PROMPTS = [
     {
@@ -63,7 +61,6 @@ def parse_args():
 
 def validate_onnx_only(converted_path: str, max_tokens: int):
     """Validate that the ONNX model can load and generate coherent output."""
-    import onnxruntime as ort
     from transformers import AutoProcessor
 
     print(f"Loading ONNX model from: {converted_path}")
@@ -111,15 +108,19 @@ def validate_with_comparison(
     from transformers import AutoProcessor, AutoModelForCausalLM
     from optimum.onnxruntime import ORTModelForCausalLM
 
-    print("Loading original model...")
-    orig_processor = AutoProcessor.from_pretrained(original_id)
-    orig_model = AutoModelForCausalLM.from_pretrained(
-        original_id, device_map="auto"
-    )
+    try:
+        print("Loading original model...")
+        orig_processor = AutoProcessor.from_pretrained(original_id)
+        orig_model = AutoModelForCausalLM.from_pretrained(
+            original_id, device_map="auto"
+        )
 
-    print("Loading ONNX model...")
-    onnx_processor = AutoProcessor.from_pretrained(converted_path)
-    onnx_model = ORTModelForCausalLM.from_pretrained(converted_path)
+        print("Loading ONNX model...")
+        onnx_processor = AutoProcessor.from_pretrained(converted_path)
+        onnx_model = ORTModelForCausalLM.from_pretrained(converted_path)
+    except Exception as e:
+        print(f"ERROR: Failed to load models: {e}")
+        return False
 
     results = []
     for i, test in enumerate(TEST_PROMPTS):

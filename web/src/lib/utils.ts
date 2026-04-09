@@ -1,3 +1,5 @@
+export { getTextContent, progressPercent } from "./types";
+
 export function formatTokensPerSecond(tps: number): string {
   return `${tps.toFixed(1)} tok/s`;
 }

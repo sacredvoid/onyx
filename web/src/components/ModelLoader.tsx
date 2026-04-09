@@ -1,4 +1,5 @@
 import type { ProgressInfo, ModelVariant } from "../lib/types";
+import { progressPercent } from "../lib/types";
 import { formatBytes } from "../lib/utils";
 
 interface ModelLoaderProps {
@@ -18,9 +19,7 @@ export function ModelLoader({
 }: ModelLoaderProps) {
   if (isReady) return null;
 
-  const percent = progress
-    ? Math.round((progress.loaded / progress.total) * 100)
-    : 0;
+  const percent = progress ? progressPercent(progress) : 0;
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-8">

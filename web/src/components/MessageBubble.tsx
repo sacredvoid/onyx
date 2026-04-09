@@ -1,5 +1,5 @@
-import type { ChatMessage } from "../lib/types";
-import { cn } from "../lib/utils";
+import type { ChatMessage, MultimodalContent } from "../lib/types";
+import { getTextContent, cn } from "../lib/utils";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -8,24 +8,17 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const textContent = getTextContent(message.content);
 
-  const textContent =
-    typeof message.content === "string"
-      ? message.content
-      : message.content
-          .filter((c) => c.type === "text")
-          .map((c) => c.text)
-          .join("");
+  const multimodal: MultimodalContent[] =
+    typeof message.content !== "string" ? message.content : [];
 
-  const imageContent =
-    typeof message.content !== "string"
-      ? message.content.filter((c) => c.type === "image")
-      : [];
-
-  const audioContent =
-    typeof message.content !== "string"
-      ? message.content.filter((c) => c.type === "audio")
-      : [];
+  const imageContent = multimodal.filter(
+    (c): c is Extract<MultimodalContent, { type: "image" }> => c.type === "image",
+  );
+  const audioContent = multimodal.filter(
+    (c): c is Extract<MultimodalContent, { type: "audio" }> => c.type === "audio",
+  );
 
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>

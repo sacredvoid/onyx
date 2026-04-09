@@ -21,7 +21,16 @@ export function Playground() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<ModelVariant>("E2B");
+  const [inputError, setInputError] = useState<string | null>(null);
   const wasGeneratingRef = useRef(false);
+  const blobUrlsRef = useRef<string[]>([]);
+
+  // Revoke blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   // When generation completes, add assistant message to history
   useEffect(() => {
@@ -37,10 +46,12 @@ export function Playground() {
 
       if (image) {
         const url = URL.createObjectURL(image);
+        blobUrlsRef.current.push(url);
         content.push({ type: "image", image: url });
       }
       if (audio) {
         const url = URL.createObjectURL(audio);
+        blobUrlsRef.current.push(url);
         content.push({ type: "audio", audio: url });
       }
       content.push({ type: "text", text });
@@ -50,23 +61,27 @@ export function Playground() {
         content: content.length === 1 ? text : content,
       };
 
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
+      // Use functional updater to avoid stale closure over messages
+      setMessages((prev) => {
+        const newMessages = [...prev, userMessage];
 
-      const images = content
-        .filter((c) => c.type === "image")
-        .map((c) => c.image!);
-      const audios = content
-        .filter((c) => c.type === "audio")
-        .map((c) => c.audio!);
+        const images = content
+          .filter((c): c is Extract<MultimodalContent, { type: "image" }> => c.type === "image")
+          .map((c) => c.image);
+        const audios = content
+          .filter((c): c is Extract<MultimodalContent, { type: "audio" }> => c.type === "audio")
+          .map((c) => c.audio);
 
-      generate(
-        newMessages,
-        images.length > 0 ? images : undefined,
-        audios.length > 0 ? audios : undefined,
-      );
+        generate(
+          newMessages,
+          images.length > 0 ? images : undefined,
+          audios.length > 0 ? audios : undefined,
+        );
+
+        return newMessages;
+      });
     },
-    [messages, generate],
+    [generate],
   );
 
   const isGenerating = status === "generating";
@@ -113,11 +128,20 @@ export function Playground() {
             isGenerating={isGenerating}
             stats={stats}
           />
+          {inputError && (
+            <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 text-red-400 text-xs text-center">
+              {inputError}
+            </div>
+          )}
           <InputBar
             onSend={handleSend}
             onInterrupt={interrupt}
             isGenerating={isGenerating}
             disabled={status !== "ready" && status !== "generating"}
+            onError={(msg) => {
+              setInputError(msg);
+              setTimeout(() => setInputError(null), 5000);
+            }}
           />
         </>
       )}

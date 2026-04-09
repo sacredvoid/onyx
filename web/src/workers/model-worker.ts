@@ -9,7 +9,7 @@ import {
   type Processor,
 } from "@huggingface/transformers";
 
-type ModelVariant = "E2B" | "E4B";
+import type { ModelVariant, ChatMessage } from "../lib/types";
 
 const MODEL_IDS: Record<ModelVariant, string> = {
   E2B: "onnx-community/gemma-4-E2B-it-ONNX",
@@ -19,6 +19,7 @@ const MODEL_IDS: Record<ModelVariant, string> = {
 let processor: Processor | null = null;
 let model: PreTrainedModel | null = null;
 let currentVariant: ModelVariant | null = null;
+let isBusy = false;
 const stoppingCriteria = new InterruptableStoppingCriteria();
 
 // Aggregate progress across all files and throttle updates
@@ -42,7 +43,7 @@ function handleProgress(info: any, variant: ModelVariant) {
 
   let totalLoaded = 0;
   let totalSize = 0;
-  let currentFile = info.file;
+  const currentFile = info.file;
   for (const [, v] of fileProgress) {
     totalLoaded += v.loaded;
     totalSize += v.total;
@@ -57,32 +58,20 @@ function handleProgress(info: any, variant: ModelVariant) {
   });
 }
 
-interface LoadMessage {
-  type: "load";
-  variant: ModelVariant;
-}
-
 interface GenerateMessage {
   type: "generate";
-  messages: Array<{
-    role: string;
-    content: string | Array<{ type: string; text?: string; image?: string; audio?: string }>;
-  }>;
+  messages: ChatMessage[];
   images?: string[];
   audios?: string[];
   maxNewTokens?: number;
   enableThinking?: boolean;
 }
 
-interface InterruptMessage {
-  type: "interrupt";
-}
-
-interface UnloadMessage {
-  type: "unload";
-}
-
-type WorkerMessage = LoadMessage | GenerateMessage | InterruptMessage | UnloadMessage;
+type WorkerMessage =
+  | { type: "load"; variant: ModelVariant }
+  | GenerateMessage
+  | { type: "interrupt" }
+  | { type: "unload" };
 
 async function loadModel(variant: ModelVariant) {
   if (currentVariant === variant && model && processor) {
@@ -90,31 +79,41 @@ async function loadModel(variant: ModelVariant) {
     return;
   }
 
-  // Unload existing model
-  if (model) {
-    await (model as any).dispose?.();
+  try {
+    // Unload existing model
+    if (model) {
+      await (model as any).dispose?.();
+      model = null;
+      processor = null;
+      currentVariant = null;
+    }
+
+    self.postMessage({ status: "loading", variant });
+    resetProgress();
+
+    const modelId = MODEL_IDS[variant];
+
+    processor = await AutoProcessor.from_pretrained(modelId, {
+      progress_callback: (info: any) => handleProgress(info, variant),
+    });
+
+    model = await Gemma4ForConditionalGeneration.from_pretrained(modelId, {
+      dtype: "q4f16",
+      device: "webgpu",
+      progress_callback: (info: any) => handleProgress(info, variant),
+    });
+
+    currentVariant = variant;
+    self.postMessage({ status: "ready", variant });
+  } catch (e) {
     model = null;
     processor = null;
     currentVariant = null;
+    self.postMessage({
+      status: "error",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
-
-  self.postMessage({ status: "loading", variant });
-  resetProgress();
-
-  const modelId = MODEL_IDS[variant];
-
-  processor = await AutoProcessor.from_pretrained(modelId, {
-    progress_callback: (info: any) => handleProgress(info, variant),
-  });
-
-  model = await Gemma4ForConditionalGeneration.from_pretrained(modelId, {
-    dtype: "q4f16",
-    device: "webgpu",
-    progress_callback: (info: any) => handleProgress(info, variant),
-  });
-
-  currentVariant = variant;
-  self.postMessage({ status: "ready", variant });
 }
 
 async function generate(data: GenerateMessage) {
@@ -176,7 +175,7 @@ async function generate(data: GenerateMessage) {
         if (firstTokenTime === null) firstTokenTime = performance.now();
 
         const elapsed = performance.now() - startTime;
-        const tps = numTokens / (elapsed / 1000);
+        const tps = elapsed > 0 ? numTokens / (elapsed / 1000) : 0;
 
         self.postMessage({
           status: "update",
@@ -201,7 +200,7 @@ async function generate(data: GenerateMessage) {
     self.postMessage({
       status: "complete",
       numTokens,
-      tps: numTokens / (totalTime / 1000),
+      tps: totalTime > 0 ? numTokens / (totalTime / 1000) : 0,
       totalTime,
       ttft: firstTokenTime ? firstTokenTime - startTime : null,
     });
@@ -220,24 +219,41 @@ async function generate(data: GenerateMessage) {
 self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
   const { type } = event.data;
 
-  switch (type) {
-    case "load":
-      await loadModel(event.data.variant);
-      break;
-    case "generate":
-      await generate(event.data);
-      break;
-    case "interrupt":
-      stoppingCriteria.interrupt();
-      break;
-    case "unload":
-      if (model) {
-        await (model as any).dispose?.();
-        model = null;
-        processor = null;
-        currentVariant = null;
-      }
-      self.postMessage({ status: "unloaded" });
-      break;
+  // Interrupt is always allowed regardless of busy state
+  if (type === "interrupt") {
+    stoppingCriteria.interrupt();
+    return;
+  }
+
+  if (isBusy) {
+    self.postMessage({ status: "error", error: "Worker is busy" });
+    return;
+  }
+
+  isBusy = true;
+  try {
+    switch (type) {
+      case "load":
+        await loadModel(event.data.variant);
+        break;
+      case "generate":
+        await generate(event.data);
+        break;
+      case "unload":
+        if (model) {
+          try {
+            await (model as any).dispose?.();
+          } catch {
+            // dispose may fail if GPU context is already lost
+          }
+          model = null;
+          processor = null;
+          currentVariant = null;
+        }
+        self.postMessage({ status: "unloaded" });
+        break;
+    }
+  } finally {
+    isBusy = false;
   }
 });

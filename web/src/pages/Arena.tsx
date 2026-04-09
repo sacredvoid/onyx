@@ -1,15 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Header } from "../components/Header";
 import { ArenaResult } from "../components/ArenaResult";
 import { useArena, type ArenaComparison } from "../hooks/useArena";
 import { formatTokensPerSecond, formatDuration } from "../lib/utils";
+import { getTextContent, progressPercent } from "../lib/types";
 import type { MultimodalContent, ChatMessage } from "../lib/types";
 
 export function Arena() {
-  const { phase, comparisons, currentRun, startRace, progress } = useArena();
+  const { phase, comparisons, currentRun, startRace, progress, error } = useArena();
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const blobUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleStart = useCallback(() => {
     if (!text.trim() && !imageFile) return;
@@ -19,6 +27,7 @@ export function Arena() {
 
     if (imageFile) {
       const url = URL.createObjectURL(imageFile);
+      blobUrlsRef.current.push(url);
       content.push({ type: "image", image: url });
       images.push(url);
     }
@@ -40,6 +49,7 @@ export function Arena() {
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
+    reader.onerror = () => setImageFile(null);
     reader.readAsDataURL(file);
   };
 
@@ -121,7 +131,7 @@ export function Arena() {
             {progress && (
               <div className="space-y-1">
                 <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.round((progress.loaded / progress.total) * 100)}%` }} />
+                  <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progressPercent(progress)}%` }} />
                 </div>
                 <p className="text-xs text-neutral-500 font-mono">{progress.file}</p>
               </div>
@@ -129,6 +139,10 @@ export function Arena() {
 
             {phase === "switching" && (
               <p className="text-sm text-yellow-400 animate-pulse">Switching to E4B model...</p>
+            )}
+
+            {error && (
+              <p className="text-sm text-red-400">{error}</p>
             )}
           </div>
         </div>
@@ -156,13 +170,7 @@ export function Arena() {
 }
 
 function ComparisonSummary({ comparison }: { comparison: ArenaComparison }) {
-  const promptText =
-    typeof comparison.prompt[0].content === "string"
-      ? comparison.prompt[0].content
-      : comparison.prompt[0].content
-          .filter((c) => c.type === "text")
-          .map((c) => c.text)
-          .join("");
+  const promptText = getTextContent(comparison.prompt[0].content);
 
   return (
     <div className="bg-neutral-900 rounded-lg p-3 text-xs">

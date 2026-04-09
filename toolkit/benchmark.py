@@ -8,7 +8,7 @@ Usage:
 
 import argparse
 import json
-import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -77,9 +77,8 @@ def get_dir_size(path: Path) -> int:
 def benchmark_single_model(model_path: str, num_runs: int, max_tokens: int) -> dict:
     """Benchmark a single ONNX model."""
     from transformers import AutoProcessor
-    import onnxruntime as ort
 
-    print(f"  Loading model from {model_path}...")
+    print(f"  Loading processor from {model_path}...")
     processor = AutoProcessor.from_pretrained(model_path)
 
     model_dir = Path(model_path)
@@ -87,29 +86,24 @@ def benchmark_single_model(model_path: str, num_runs: int, max_tokens: int) -> d
 
     results = []
     for prompt in BENCHMARK_PROMPTS:
-        prompt_results = []
         messages = [{"role": "user", "content": prompt}]
         formatted = processor.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=False
         )
 
         for run in range(num_runs):
-            inputs = processor(formatted, return_tensors="np")
-            input_tokens = inputs["input_ids"].shape[-1]
-
             start = time.time()
-            elapsed = time.time() - start
+            inputs = processor(formatted, return_tensors="np")
+            tokenization_time = time.time() - start
 
-            prompt_results.append(
-                {
-                    "prompt": prompt[:50],
-                    "input_tokens": int(input_tokens),
-                    "tokenization_time_ms": round(elapsed * 1000, 2),
-                    "run": run,
-                }
-            )
+            input_tokens = int(inputs["input_ids"].shape[-1])
 
-        results.extend(prompt_results)
+            results.append({
+                "prompt": prompt[:50],
+                "input_tokens": input_tokens,
+                "tokenization_time_ms": round(tokenization_time * 1000, 2),
+                "run": run,
+            })
 
     avg_tok_time = np.mean([r["tokenization_time_ms"] for r in results])
 
@@ -145,10 +139,12 @@ def main():
             onnx_dir = output_dir / f"onnx_{quant}"
             if not onnx_dir.exists():
                 print(f"  Converting to {quant}...")
-                ret = os.system(
-                    f"python convert.py --model {args.model} "
-                    f"--output {output_dir / quant} --quant {quant}"
-                )
+                ret = subprocess.run([
+                    "python", "convert.py",
+                    "--model", args.model,
+                    "--output", str(output_dir / quant),
+                    "--quant", quant,
+                ]).returncode
                 if ret != 0:
                     print(f"  Conversion failed, skipping {quant}")
                     continue

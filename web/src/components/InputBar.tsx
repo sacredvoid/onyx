@@ -7,6 +7,7 @@ interface InputBarProps {
   disabled?: boolean;
   isGenerating?: boolean;
   placeholder?: string;
+  onError?: (message: string) => void;
 }
 
 export function InputBar({
@@ -15,6 +16,7 @@ export function InputBar({
   disabled,
   isGenerating,
   placeholder = "Type a message...",
+  onError,
 }: InputBarProps) {
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -47,6 +49,10 @@ export function InputBar({
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
+    reader.onerror = () => {
+      setImageFile(null);
+      onError?.("Failed to read the selected image file.");
+    };
     reader.readAsDataURL(file);
   };
 
@@ -74,8 +80,14 @@ export function InputBar({
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
-    } catch {
-      // Microphone access denied
+    } catch (e) {
+      const msg =
+        e instanceof DOMException && e.name === "NotAllowedError"
+          ? "Microphone access denied. Check your browser permissions."
+          : e instanceof DOMException && e.name === "NotFoundError"
+            ? "No microphone found on this device."
+            : "Could not access microphone.";
+      onError?.(msg);
     }
   };
 

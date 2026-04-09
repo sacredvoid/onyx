@@ -1,8 +1,6 @@
-export interface WebGPUStatus {
-  supported: boolean;
-  adapterName?: string;
-  error?: string;
-}
+export type WebGPUStatus =
+  | { supported: true; adapterName: string }
+  | { supported: false; error: string };
 
 export async function checkWebGPU(): Promise<WebGPUStatus> {
   if (!navigator.gpu) {

@@ -5,6 +5,7 @@ import type {
   ProgressInfo,
   GenerationStats,
   ChatMessage,
+  WorkerResponse,
 } from "../lib/types";
 
 interface UseModelReturn {
@@ -39,7 +40,7 @@ export function useModel(): UseModelReturn {
       { type: "module" },
     );
 
-    worker.onmessage = (event) => {
+    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
       const data = event.data;
 
       switch (data.status) {
@@ -91,21 +92,36 @@ export function useModel(): UseModelReturn {
       }
     };
 
+    worker.onerror = (event) => {
+      setStatus("error");
+      setError(event.message || "Worker crashed unexpectedly. Try reloading the page.");
+    };
+
     workerRef.current = worker;
     return () => worker.terminate();
   }, []);
 
   const loadModel = useCallback((variant: ModelVariant) => {
+    if (!workerRef.current) {
+      setError("Worker not initialized. Try reloading the page.");
+      setStatus("error");
+      return;
+    }
     setError(null);
-    workerRef.current?.postMessage({ type: "load", variant });
+    workerRef.current.postMessage({ type: "load", variant });
   }, []);
 
   const generate = useCallback(
     (messages: ChatMessage[], images?: string[], audios?: string[]) => {
+      if (!workerRef.current) {
+        setError("Worker not initialized. Try reloading the page.");
+        setStatus("error");
+        return;
+      }
       setOutput("");
       setStats(null);
       setStatus("generating");
-      workerRef.current?.postMessage({
+      workerRef.current.postMessage({
         type: "generate",
         messages,
         images,
