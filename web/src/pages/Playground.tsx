@@ -34,8 +34,9 @@ export function Playground() {
 
   // When generation completes, add assistant message to history
   useEffect(() => {
-    if (wasGeneratingRef.current && status !== "generating" && output) {
-      setMessages((prev) => [...prev, { role: "assistant", content: output }]);
+    if (wasGeneratingRef.current && status !== "generating") {
+      const text = output || "(no response)";
+      setMessages((prev) => [...prev, { role: "assistant", content: text }]);
     }
     wasGeneratingRef.current = status === "generating";
   }, [status, output]);

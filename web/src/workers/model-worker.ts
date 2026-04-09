@@ -19,8 +19,10 @@ const MODEL_IDS: Record<ModelVariant, string> = {
 let processor: Processor | null = null;
 let model: PreTrainedModel | null = null;
 let currentVariant: ModelVariant | null = null;
-let isBusy = false;
 const stoppingCriteria = new InterruptableStoppingCriteria();
+
+// Sequential task queue - chains async operations so they can't overlap
+let taskQueue = Promise.resolve();
 
 // Aggregate progress across all files, throttle updates, and ensure monotonic increase
 const fileProgress = new Map<string, { loaded: number; total: number }>();
@@ -214,28 +216,23 @@ async function generate(data: GenerateMessage) {
   }
 }
 
-self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
+self.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
   const { type } = event.data;
 
-  // Interrupt is always allowed regardless of busy state
+  // Interrupt is always allowed and runs immediately
   if (type === "interrupt") {
     stoppingCriteria.interrupt();
     return;
   }
 
-  if (isBusy) {
-    self.postMessage({ status: "error", error: "Worker is busy" });
-    return;
-  }
-
-  isBusy = true;
-  try {
+  // Queue all other operations so they execute sequentially
+  taskQueue = taskQueue.then(async () => {
     switch (type) {
       case "load":
         await loadModel(event.data.variant);
         break;
       case "generate":
-        await generate(event.data);
+        await generate(event.data as any);
         break;
       case "unload":
         if (model) {
@@ -251,7 +248,5 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
         self.postMessage({ status: "unloaded" });
         break;
     }
-  } finally {
-    isBusy = false;
-  }
+  });
 });
