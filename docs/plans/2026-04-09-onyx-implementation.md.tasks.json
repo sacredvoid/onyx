@@ -1,0 +1,20 @@
+{
+  "planPath": "docs/plans/2026-04-09-onyx-implementation.md",
+  "tasks": [
+    {"id": 6, "subject": "Task 0: Project Scaffold + Git Init", "status": "pending"},
+    {"id": 7, "subject": "Task 1: WebGPU Detection + Utilities", "status": "pending", "blockedBy": [6]},
+    {"id": 8, "subject": "Task 2: Web Worker Model Inference Engine", "status": "pending", "blockedBy": [7]},
+    {"id": 9, "subject": "Task 3: useModel React Hook", "status": "pending", "blockedBy": [8]},
+    {"id": 10, "subject": "Task 4: Header + ModelLoader Components", "status": "pending", "blockedBy": [7]},
+    {"id": 11, "subject": "Task 5: Chat Components", "status": "pending", "blockedBy": [10]},
+    {"id": 12, "subject": "Task 6: Playground Page", "status": "pending", "blockedBy": [9, 11]},
+    {"id": 13, "subject": "Task 7: Arena Hook + Components", "status": "pending", "blockedBy": [8]},
+    {"id": 14, "subject": "Task 8: Arena Page", "status": "pending", "blockedBy": [13]},
+    {"id": 15, "subject": "Task 9: Landing Page", "status": "pending", "blockedBy": [7]},
+    {"id": 16, "subject": "Task 10: Python Conversion Script", "status": "pending", "blockedBy": [6]},
+    {"id": 17, "subject": "Task 11: Python Validation Script", "status": "pending", "blockedBy": [16]},
+    {"id": 18, "subject": "Task 12: Python Benchmark Script", "status": "pending", "blockedBy": [17]},
+    {"id": 19, "subject": "Task 13: README + GitHub Repo", "status": "pending", "blockedBy": [6]}
+  ],
+  "lastUpdated": "2026-04-09T04:00:00Z"
+}
