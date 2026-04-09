@@ -73,18 +73,19 @@ export function useModel(): UseModelReturn {
           });
           break;
         case "complete":
+          if (!interruptedRef.current) {
+            setStatus("ready");
+            setStats({
+              numTokens: data.numTokens,
+              tps: data.tps,
+              totalTime: data.totalTime,
+              ttft: data.ttft,
+            });
+          }
           interruptedRef.current = false;
-          setStatus("ready");
-          setStats({
-            numTokens: data.numTokens,
-            tps: data.tps,
-            totalTime: data.totalTime,
-            ttft: data.ttft,
-          });
           break;
         case "interrupted":
           interruptedRef.current = false;
-          setStatus("ready");
           break;
         case "unloaded":
           setStatus("idle");
