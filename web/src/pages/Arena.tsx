@@ -87,8 +87,6 @@ export function Arena() {
           ? { output: latestComparison.runs[1].output, stats: latestComparison.runs[1].stats, streaming: false, waiting: false }
           : null;
 
-  const hasResults = showE2B !== null || showE4B !== null;
-
   const e2bWins = !!(
     phase === "done" &&
     latestComparison &&

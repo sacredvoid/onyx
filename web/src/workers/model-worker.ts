@@ -110,7 +110,7 @@ async function prefetchModel(variant: ModelVariant) {
     if (!prefetchAbort.signal.aborted) {
       await Gemma4ForConditionalGeneration.from_pretrained(modelId, {
         dtype: "q4f16",
-        device: null,
+        device: "wasm" as any,
         progress_callback: (info: any) => {
           if (prefetchAbort?.signal.aborted) return;
           if (info.status === "progress") {
@@ -210,7 +210,7 @@ async function generate(data: GenerateMessage) {
       ? await Promise.all(data.images.map((src) => load_image(src)))
       : null;
     const audios = data.audios
-      ? await Promise.all(data.audios.map((src) => read_audio(src)))
+      ? await Promise.all(data.audios.map((src) => read_audio(src, 16000)))
       : null;
 
     // Processor signature is (text, image, audio, options) - always pass all 4 args

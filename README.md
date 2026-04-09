@@ -8,7 +8,14 @@
 
 No API keys. No server. No data leaving your machine.
 
-[Open Playground](#demo-site) | [Try Arena](#demo-site) | [Conversion Toolkit](#conversion-toolkit)
+[![Deploy](https://github.com/sacredvoid/onyx/actions/workflows/deploy.yml/badge.svg)](https://github.com/sacredvoid/onyx/actions/workflows/deploy.yml)
+[![GitHub Pages](https://img.shields.io/badge/demo-live-brightgreen)](https://sacredvoid.github.io/onyx/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![WebGPU](https://img.shields.io/badge/WebGPU-powered-red)](https://developer.chrome.com/docs/web-platform/webgpu)
+
+[Live Demo](https://sacredvoid.github.io/onyx/) | [Playground](https://sacredvoid.github.io/onyx/playground) | [Arena](https://sacredvoid.github.io/onyx/arena) | [Conversion Toolkit](#conversion-toolkit)
 
 </div>
 
