@@ -190,10 +190,14 @@ export function useArena(): UseArenaReturn {
     return workerRef.current;
   }, [resetRace]);
 
+  // Track whether the worker is fresh (no model loaded yet)
+  const workerFreshRef = useRef(true);
+
   const startRace = useCallback(
     (messages: ChatMessage[], images?: string[], audios?: string[]) => {
       const worker = getOrCreateWorker();
       setError(null);
+      setE2bResult(null);
 
       raceStateRef.current = {
         messages,
@@ -205,9 +209,16 @@ export function useArena(): UseArenaReturn {
 
       setPhase("running-e2b");
       setCurrentRun(null);
-      // Unload any existing model, then load E2B on "unloaded" confirmation
-      pendingE2BLoadRef.current = true;
-      worker.postMessage({ type: "unload" });
+
+      if (workerFreshRef.current) {
+        // Fresh worker, no model to unload - go straight to loading E2B
+        workerFreshRef.current = false;
+        worker.postMessage({ type: "load", variant: "E2B" });
+      } else {
+        // Existing worker may have a model loaded - unload first
+        pendingE2BLoadRef.current = true;
+        worker.postMessage({ type: "unload" });
+      }
     },
     [getOrCreateWorker],
   );
