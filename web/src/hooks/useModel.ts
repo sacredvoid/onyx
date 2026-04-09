@@ -33,6 +33,7 @@ export function useModel(): UseModelReturn {
   const [stats, setStats] = useState<GenerationStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentVariant, setCurrentVariant] = useState<ModelVariant | null>(null);
+  const interruptedRef = useRef(false);
 
   useEffect(() => {
     const worker = new Worker(
@@ -61,6 +62,8 @@ export function useModel(): UseModelReturn {
           setCurrentVariant(data.variant);
           break;
         case "update":
+          // Ignore tokens that arrive after interrupt was requested
+          if (interruptedRef.current) break;
           setOutput((prev) => prev + data.token);
           setStats({
             numTokens: data.numTokens,
@@ -70,6 +73,7 @@ export function useModel(): UseModelReturn {
           });
           break;
         case "complete":
+          interruptedRef.current = false;
           setStatus("ready");
           setStats({
             numTokens: data.numTokens,
@@ -79,6 +83,7 @@ export function useModel(): UseModelReturn {
           });
           break;
         case "interrupted":
+          interruptedRef.current = false;
           setStatus("ready");
           break;
         case "unloaded":
@@ -86,6 +91,7 @@ export function useModel(): UseModelReturn {
           setCurrentVariant(null);
           break;
         case "error":
+          interruptedRef.current = false;
           setStatus("error");
           setError(data.error);
           break;
@@ -132,6 +138,8 @@ export function useModel(): UseModelReturn {
   );
 
   const interrupt = useCallback(() => {
+    interruptedRef.current = true;
+    setStatus("ready");
     workerRef.current?.postMessage({ type: "interrupt" });
   }, []);
 
