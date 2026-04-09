@@ -105,15 +105,15 @@ export function Arena() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Empty state with centered prompt */}
         {phase === "idle" && comparisons.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="max-w-2xl w-full space-y-8">
+          <div className="flex-1 flex items-center justify-center p-3 md:p-4">
+            <div className="max-w-2xl w-full space-y-6 md:space-y-8">
               <div className="text-center space-y-2">
                 <img
                   src={`${import.meta.env.BASE_URL}onix.webp`}
                   alt="Onix"
                   className="w-14 h-14 mx-auto object-contain opacity-60"
                 />
-                <h1 className="text-3xl font-bold">E2B vs E4B</h1>
+                <h1 className="text-2xl font-bold md:text-3xl">E2B vs E4B</h1>
                 <p className="text-neutral-400">
                   Same prompt, two models. See how they compare on speed and quality.
                 </p>
@@ -132,25 +132,27 @@ export function Arena() {
                     </button>
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" id="arena-image" />
-                  <label htmlFor="arena-image" className="p-2.5 bg-neutral-800 rounded-lg text-neutral-400 hover:text-white cursor-pointer transition-colors border border-neutral-700">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                    </svg>
-                  </label>
-                  <input
-                    type="text"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleStart()}
-                    placeholder="Enter a prompt to race..."
-                    className="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="flex gap-2 flex-1 min-w-0">
+                    <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" id="arena-image" />
+                    <label htmlFor="arena-image" className="p-2.5 bg-neutral-800 rounded-lg text-neutral-400 hover:text-white cursor-pointer transition-colors border border-neutral-700 shrink-0">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                      </svg>
+                    </label>
+                    <input
+                      type="text"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleStart()}
+                      placeholder="Enter a prompt to race..."
+                      className="flex-1 min-w-0 bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
                   <button
                     onClick={() => handleStart()}
                     disabled={!text.trim() && !imageFile}
-                    className="px-6 py-3 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                   >
                     Start Race
                   </button>
@@ -176,7 +178,7 @@ export function Arena() {
               </div>
 
               {/* How it works */}
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-neutral-800/50">
+              <div className="grid grid-cols-1 gap-4 pt-4 border-t border-neutral-800/50 sm:grid-cols-3">
                 <StepCard step="1" title="Load E2B" desc="~3.2 GB model loads and runs your prompt" />
                 <StepCard step="2" title="Switch to E4B" desc="Unloads E2B, loads the larger ~5 GB model" />
                 <StepCard step="3" title="Compare" desc="Side-by-side results with speed and quality stats" />
@@ -189,7 +191,7 @@ export function Arena() {
             {/* Compact top bar with input when race is active */}
             <div className="border-b border-neutral-800 px-4 py-3">
               <div className="max-w-5xl mx-auto">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-sm font-semibold">Arena</span>
                     {phase === "running-e2b" && (
@@ -239,7 +241,7 @@ export function Arena() {
             </div>
 
             {/* Side-by-side results */}
-            <div className="flex-1 flex gap-3 p-3 overflow-hidden">
+            <div className="flex-1 flex flex-col gap-3 p-3 overflow-hidden md:flex-row">
               <ArenaResult
                 variant="E2B"
                 output={showE2B?.output ?? ""}
@@ -298,15 +300,17 @@ function ComparisonSummary({ comparison }: { comparison: ArenaComparison }) {
   const faster = comparison.runs[0].stats.tps > comparison.runs[1].stats.tps ? 0 : 1;
 
   return (
-    <div className="bg-neutral-900/50 rounded-lg px-3 py-2 text-xs flex items-center gap-4">
-      <p className="text-neutral-400 truncate flex-1">{promptText}</p>
-      {comparison.runs.map((run, i) => (
-        <div key={run.variant} className={`flex items-center gap-2 shrink-0 ${i === faster ? "text-green-400" : "text-neutral-500"}`}>
-          <span className="font-mono font-medium">{run.variant}</span>
-          <span>{formatTokensPerSecond(run.stats.tps)}</span>
-          <span>{formatDuration(run.stats.totalTime)}</span>
-        </div>
-      ))}
+    <div className="bg-neutral-900/50 rounded-lg px-3 py-2 text-xs flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+      <p className="text-neutral-400 truncate sm:flex-1">{promptText}</p>
+      <div className="flex items-center gap-4">
+        {comparison.runs.map((run, i) => (
+          <div key={run.variant} className={`flex items-center gap-2 shrink-0 ${i === faster ? "text-green-400" : "text-neutral-500"}`}>
+            <span className="font-mono font-medium">{run.variant}</span>
+            <span>{formatTokensPerSecond(run.stats.tps)}</span>
+            <span>{formatDuration(run.stats.totalTime)}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

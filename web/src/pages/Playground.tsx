@@ -146,7 +146,7 @@ export function Playground() {
               {inputError}
             </div>
           )}
-          <div className="max-w-3xl mx-auto w-full">
+          <div className="max-w-3xl mx-auto w-full px-2 md:px-0">
             <InputBar
               onSend={handleSend}
               onInterrupt={interrupt}
@@ -161,8 +161,8 @@ export function Playground() {
         </>
       ) : (
         // Empty state - centered welcome
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full space-y-8">
+        <div className="flex-1 flex items-center justify-center p-3 md:p-4">
+          <div className="max-w-2xl w-full space-y-6 md:space-y-8">
             {/* Welcome */}
             <div className="text-center space-y-2">
               <img
@@ -170,7 +170,7 @@ export function Playground() {
                 alt="Onix"
                 className="w-16 h-16 mx-auto object-contain opacity-60"
               />
-              <h2 className="text-2xl font-semibold">What can I help with?</h2>
+              <h2 className="text-xl font-semibold md:text-2xl">What can I help with?</h2>
               <p className="text-sm text-neutral-500">
                 Running Gemma 4 {currentVariant} locally via WebGPU. Text, images, and audio supported.
               </p>

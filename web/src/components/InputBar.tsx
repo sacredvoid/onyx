@@ -92,7 +92,7 @@ export function InputBar({
   };
 
   return (
-    <div className="bg-neutral-950 p-4">
+    <div className="bg-neutral-950 p-2 md:p-4">
       {(imagePreview || audioBlob) && (
         <div className="flex gap-2 mb-3">
           {imagePreview && (
@@ -120,15 +120,15 @@ export function InputBar({
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-1.5 md:gap-2">
         <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-        <button onClick={() => imageInputRef.current?.click()} className="p-2 text-neutral-400 hover:text-white transition-colors" title="Upload image">
+        <button onClick={() => imageInputRef.current?.click()} className="p-1.5 md:p-2 text-neutral-400 hover:text-white transition-colors shrink-0" title="Upload image">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
           </svg>
         </button>
 
-        <button onClick={toggleRecording} className={cn("p-2 transition-colors", isRecording ? "text-red-500 animate-pulse" : "text-neutral-400 hover:text-white")} title={isRecording ? "Stop recording" : "Record audio"}>
+        <button onClick={toggleRecording} className={cn("p-1.5 md:p-2 transition-colors shrink-0", isRecording ? "text-red-500 animate-pulse" : "text-neutral-400 hover:text-white")} title={isRecording ? "Stop recording" : "Record audio"}>
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
           </svg>
@@ -141,15 +141,15 @@ export function InputBar({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 disabled:opacity-50"
+          className="flex-1 min-w-0 bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white placeholder-neutral-500 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 disabled:opacity-50 md:px-4 md:py-2.5"
         />
 
         {isGenerating ? (
-          <button onClick={onInterrupt} className="px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors">
+          <button onClick={onInterrupt} className="px-3 py-2 md:px-4 md:py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors shrink-0">
             Stop
           </button>
         ) : (
-          <button onClick={handleSend} disabled={disabled || (!text.trim() && !imageFile && !audioBlob)} className="px-4 py-2.5 bg-white text-black rounded-xl text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+          <button onClick={handleSend} disabled={disabled || (!text.trim() && !imageFile && !audioBlob)} className="px-3 py-2 md:px-4 md:py-2.5 bg-white text-black rounded-xl text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0">
             Send
           </button>
         )}

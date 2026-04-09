@@ -30,26 +30,29 @@ export function ArenaResult({
       }`}
     >
       {/* Header with inline stats */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800/50">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-2 py-2 border-b border-neutral-800/50 md:px-4">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <span className="font-mono text-sm font-bold">{variant}</span>
-          <span className="text-[10px] text-neutral-500 font-mono">
+          <span className="text-[10px] text-neutral-500 font-mono hidden sm:inline">
             {variant === "E2B" ? "2.3B" : "4B"}
           </span>
           {winner && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-medium">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-medium hidden sm:inline">
               FASTER (tok/s)
             </span>
           )}
+          {winner && (
+            <span className="w-2 h-2 rounded-full bg-green-400 sm:hidden" title="Faster" />
+          )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           {stats && (
-            <div className="flex items-center gap-3 text-[10px] font-mono text-neutral-400">
-              <span>{stats.numTokens} tok</span>
+            <div className="flex items-center gap-2 md:gap-3 text-[10px] font-mono text-neutral-400">
+              <span className="hidden sm:inline">{stats.numTokens} tok</span>
               <span className={winner ? "text-green-400" : ""}>{formatTokensPerSecond(stats.tps)}</span>
-              <span>{formatDuration(stats.totalTime)}</span>
-              {stats.ttft !== null && <span>TTFT {formatDuration(stats.ttft)}</span>}
+              <span className="hidden sm:inline">{formatDuration(stats.totalTime)}</span>
+              {stats.ttft !== null && <span className="hidden md:inline">TTFT {formatDuration(stats.ttft)}</span>}
             </div>
           )}
           {isStreaming && (
@@ -65,7 +68,7 @@ export function ArenaResult({
       </div>
 
       {/* Output with markdown rendering */}
-      <div className="flex-1 p-4 overflow-y-auto min-h-[180px]">
+      <div className="flex-1 p-3 overflow-y-auto min-h-[120px] md:p-4 md:min-h-[180px]">
         {output ? (
           <div className="text-sm text-neutral-200 leading-relaxed prose prose-invert prose-sm max-w-none prose-headings:text-neutral-100 prose-headings:font-semibold prose-p:text-neutral-200 prose-strong:text-white prose-li:text-neutral-200 prose-code:text-indigo-300 prose-code:bg-neutral-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-neutral-800 prose-pre:border prose-pre:border-neutral-700">
             <ReactMarkdown>{output}</ReactMarkdown>

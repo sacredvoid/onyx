@@ -21,7 +21,7 @@ export function Header({ modelStatus, currentVariant }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight">onyx</span>
-          <span className="text-xs text-neutral-500 font-mono">gemma 4</span>
+          <span className="hidden sm:inline text-xs text-neutral-500 font-mono">gemma 4</span>
         </Link>
 
         <nav className="flex items-center gap-1">
@@ -30,7 +30,7 @@ export function Header({ modelStatus, currentVariant }: HeaderProps) {
               key={path}
               to={path}
               className={cn(
-                "px-3 py-1.5 rounded-md text-sm transition-colors",
+                "px-2 py-1 rounded-md text-xs transition-colors sm:px-3 sm:py-1.5 sm:text-sm",
                 location.pathname === path
                   ? "bg-neutral-800 text-white"
                   : "text-neutral-400 hover:text-white hover:bg-neutral-800/50",

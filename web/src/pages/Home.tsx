@@ -12,24 +12,24 @@ export function Home() {
         {/* Hero with Onix */}
         <section className="max-w-5xl mx-auto px-4 pt-12 pb-16">
           <div className="relative rounded-2xl border border-neutral-800 bg-gradient-to-br from-neutral-950 to-neutral-900 overflow-hidden">
-            <div className="flex items-center gap-8 px-10 py-10">
+            <div className="flex flex-col items-center gap-6 px-4 py-6 md:flex-row md:gap-8 md:px-10 md:py-10">
               {/* Onix image */}
               <div className="relative shrink-0">
                 <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-3xl scale-110" />
                 <img
                   src={`${import.meta.env.BASE_URL}onix.webp`}
                   alt="Shiny Onix"
-                  className="relative w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(129,140,248,0.3)]"
+                  className="relative w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(129,140,248,0.3)]"
                 />
               </div>
 
               {/* Text content */}
-              <div className="space-y-4">
-                <h1 className="text-5xl font-bold tracking-tight">onyx</h1>
+              <div className="space-y-4 text-center md:text-left">
+                <h1 className="text-3xl font-bold tracking-tight md:text-5xl">onyx</h1>
                 <p className="text-lg text-neutral-400">
                   Gemma 4 in your browser
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                   {["WebGPU", "Multimodal", "On-device", "Arena", "E2B", "E4B", "ONNX q4"].map((tag) => (
                     <span
                       key={tag}
